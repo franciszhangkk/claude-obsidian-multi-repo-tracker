@@ -1,0 +1,20 @@
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Obsidian (在 examples/demo-vault 里如果有 .obsidian 配置不进仓库)
+.obsidian/workspace*
+.obsidian/cache
+
+# 用户本地配置（如果有）
+.local/
+local-config.json
+
+# 临时文件
+*.log
+*.tmp
