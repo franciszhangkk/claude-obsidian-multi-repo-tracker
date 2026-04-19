@@ -1,0 +1,55 @@
+name: Bug report / 报告 Bug
+description: Report something that doesn't work as expected / 报告不符合预期的问题
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! 中英文皆可 / Either Chinese or English is fine.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened? / 发生了什么
+      description: Describe the bug clearly / 清楚描述这个问题
+      placeholder: e.g. /init-vault failed with permission error / `/init-vault` 报权限错误
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce / 如何复现
+      description: Steps to reproduce / 复现步骤
+      placeholder: |
+        1. Run `/init-vault` with vault path `~/Documents/MyVault`
+        2. Choose...
+        3. See error...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior / 期望行为
+    validations:
+      required: true
+
+  - type: input
+    id: claude-code-version
+    attributes:
+      label: Claude Code version / Claude Code 版本
+      placeholder: e.g. 1.x.x (run `claude --version`)
+
+  - type: input
+    id: os
+    attributes:
+      label: OS / 操作系统
+      placeholder: e.g. macOS 14.5 / Ubuntu 22.04 / Windows 11 + WSL2
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / 日志
+      description: Any relevant error output / 相关错误输出
+      render: shell

@@ -12,8 +12,28 @@
 ### 1. Clone 到 Claude Code skills 目录
 
 ```bash
-git clone https://github.com/<your-account>/claude-obsidian-multi-repo-tracker.git \
+git clone https://github.com/franciszhangkk/claude-obsidian-multi-repo-tracker.git \
   ~/.claude/skills/claude-obsidian-multi-repo-tracker
+```
+
+### 1.5 注册 slash commands
+
+Claude Code 的 slash command 从 `~/.claude/commands/` 加载。把本 skill 的 `commands/` 软链过去：
+
+```bash
+# 软链整个目录（推荐，升级时自动同步）
+mkdir -p ~/.claude/commands
+ln -sf ~/.claude/skills/claude-obsidian-multi-repo-tracker/commands/init-vault.md \
+       ~/.claude/commands/init-vault.md
+ln -sf ~/.claude/skills/claude-obsidian-multi-repo-tracker/commands/add-project.md \
+       ~/.claude/commands/add-project.md
+# 其他命令同理
+```
+
+或者直接复制（不会随 skill 升级而更新）：
+
+```bash
+cp ~/.claude/skills/claude-obsidian-multi-repo-tracker/commands/*.md ~/.claude/commands/
 ```
 
 ### 2. 配置 vault 路径

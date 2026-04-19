@@ -1,0 +1,44 @@
+name: Feature request / 功能建议
+description: Suggest a new feature or improvement / 建议新功能或改进
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion! 中英文皆可 / Either language fine.
+
+        **Before submitting**: please check the [scope of this project](../blob/main/CONTRIBUTING.md) — features outside that scope (second brain, RAG, team collab, language lock-in) won't be accepted.
+
+        **提交前**：请先看[项目范围](../blob/main/CONTRIBUTING.md)——超出范围的功能（second brain、RAG、团队协作、语言绑定）不会被合并。
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve? / 你想解决什么问题
+      description: Describe the use case, not just the solution / 描述使用场景，而不只是解决方案
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution / 建议的方案
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered / 考虑过的其他方案
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Does this fit project scope? / 是否符合项目范围
+      description: See CONTRIBUTING.md / 见 CONTRIBUTING.md
+      options:
+        - "Yes — multi-repo project tracking / 是，属于多仓库项目跟踪"
+        - "Not sure / 不确定"
+        - "No, but I think it should be / 不属于，但我觉得应该扩展"
+    validations:
+      required: true

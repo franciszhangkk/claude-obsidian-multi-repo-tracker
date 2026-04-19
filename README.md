@@ -1,5 +1,7 @@
 # claude-obsidian-multi-repo-tracker
 
+[中文](README.md) | [English](README-en.md)
+
 > 一个 Claude Code Skill，把你的 Obsidian vault 变成跨多个代码仓库的项目跟踪知识库。
 
 **核心理念**：让 Claude Code 在每次开工前先读 Obsidian，而不是从零扫代码。文档 = 上下文缓存。
