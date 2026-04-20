@@ -30,6 +30,23 @@
 - 项目文档入口统一命名 `概览.md`，不要用裸数字前缀
 - 标记"此区域由 X 自动维护"的部分可以覆写，其余不要碰
 
+## Git 操作约定（重要）
+
+**用户提到 commit / push / pull / 提交 / 推送 / 拉取时**：
+
+- **优先用 `/commit` 和 `/pull`**，不要直接跑裸 `git commit` `git pull`
+- 这两个 slash command 会自动同步 vault 文档（activeContext / 首页状态），跳过它们会让 Obsidian 文档和实际代码状态漂移
+- 仅当以下场景才用裸 git：
+  - 用户**明确说**"裸 git" / "不要走 skill" / "用原始 git"
+  - 操作复杂到 skill 不支持（rebase、cherry-pick、reflog、bisect 等）
+  - 用户在 review 阶段问"显示 diff"等只读查询
+
+**裸 git 操作完成后**，主动建议用户跑一次 `/sync-docs` 补同步：
+
+> "已经用裸 git 提交。要不要跑 `/sync-docs` 同步到 Obsidian？"
+
+**为什么这条特别重要**：本 vault 的核心价值是"Claude 下次开工前先读 Obsidian 拿到上下文"。如果文档和代码漂移，下次会话里 Claude 看到的项目状态是过期的，所有判断都会偏。
+
 ## 关键入口
 
 - [[首页]] — vault 总入口
