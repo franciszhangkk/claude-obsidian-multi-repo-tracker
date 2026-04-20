@@ -8,9 +8,9 @@
 |------|:---:|------|
 | [`init-vault.md`](init-vault.md) | ✅ MVP | 初始化新 vault，复制 `templates/vault/` 到用户指定路径 |
 | [`add-project.md`](add-project.md) | ✅ MVP | 在 vault 里新增项目，自动检测语言/依赖，更新首页索引和代码仓库 CLAUDE.md |
-| `sync-docs.md` | 待迁移 | 把最近 git 变更同步到对应项目文档 |
-| `commit.md` | 待迁移 | git add + commit + 自动同步文档 |
-| `pull.md` | 待迁移 | git pull + 自动同步文档 |
+| [`sync-docs.md`](sync-docs.md) | ✅ MVP | 把最近 git 变更同步到对应 Obsidian 项目的 `activeContext.md` 和首页 |
+| [`commit.md`](commit.md) | ✅ MVP | git add + commit（智能 message）+ 自动调用 `/sync-docs` |
+| [`pull.md`](pull.md) | ✅ MVP | git pull（带工作区检查）+ 批量同步新提交到 Obsidian |
 | `update-active.md` | 待写 | 刷新当前项目的 `activeContext.md` |
 | `weekly-digest.md` | 待写 | 周回顾，把日记 claude-log 编进项目 `progress.md` |
 
