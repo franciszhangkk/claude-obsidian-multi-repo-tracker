@@ -90,25 +90,44 @@ sed -i '' "s/{{项目名}}/<实际项目名>/g" "<file>"
 
 ### 8. 在代码仓库根写入 CLAUDE.md（如果没有）
 
+**改为从模板文件读取**，不再内联生成：
+
 ```bash
 CODE_CLAUDE_MD="<代码路径>/CLAUDE.md"
-[ -f "$CODE_CLAUDE_MD" ] && echo "已存在 CLAUDE.md，跳过" || cat > "$CODE_CLAUDE_MD" <<EOF
-# <项目名>
+TEMPLATE_FILE="$SKILL_DIR/templates/project/CLAUDE.md.template"
 
-> Claude 上下文：先读 Obsidian vault 中的项目文档，再看代码。
-
-## 项目文档位置
-
-- 概览：\`<vault>/项目/<项目名>/概览.md\`
-- 当前焦点：\`<vault>/项目/<项目名>/activeContext.md\`
-- 进度：\`<vault>/项目/<项目名>/progress.md\`
-
-## 工作约定
-
-- 改完代码后用 \`/sync-docs\` 同步到 vault
-- 重大架构变化要更新 \`概览.md\` 和 \`01-架构/\`
-EOF
+if [ -f "$CODE_CLAUDE_MD" ]; then
+  echo "已存在 CLAUDE.md，跳过"
+else
+  cp "$TEMPLATE_FILE" "$CODE_CLAUDE_MD"
+fi
 ```
+
+然后用 Edit 替换占位符：
+
+| 占位符 | 替换为 |
+|--------|--------|
+| `{{vault_path}}` | vault 绝对路径（如 `/Users/x/Desktop/Obsidian Vault`） |
+| `{{项目名}}` | 用户传的项目名 |
+| `{{语言}}` | 第 7 步检测出的语言 |
+| `{{框架/库}}` | 第 7 步检测出的依赖 |
+| `{{related_projects_block}}` | 关联项目列表（见下） |
+
+**`{{related_projects_block}}` 生成**：
+
+读 vault `首页.md` 的项目列表，**除当前项目外的其他项目**，每条生成一行：
+
+```markdown
+- <项目名>（<一句话角色，从首页表格的"角色"列取，没有就留空>）→ Obsidian: `项目/<名>/`
+```
+
+如果首页没有其他项目（首次添加），整个 block 写：
+
+```markdown
+- _（暂无关联项目，添加更多项目后此处会自动更新）_
+```
+
+模板里的"Obsidian 文档地图"段保持模板默认（占位 _暂无文档_），后续靠 `/sync-docs` 刷新——不要在 add-project 阶段就扫，因为新项目还没文档。
 
 ### 9. 更新 vault 首页的项目列表
 

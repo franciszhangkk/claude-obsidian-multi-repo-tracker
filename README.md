@@ -79,13 +79,25 @@ git clone https://github.com/<your-account>/claude-obsidian-multi-repo-tracker.g
 
 ### 4. 日常使用
 
-| 场景 | 命令 |
-|------|------|
-| 改完代码同步到文档 | `/sync-docs` |
-| 提交代码 + 同步文档 | `/commit` |
-| 拉代码 + 更新文档 | `/pull` |
-| 更新当前焦点 | `/update-active` |
-| 周回顾，把日记编进 progress | `/weekly-digest` |
+| 场景 | 命令 | 频率 |
+|------|------|------|
+| 改完代码同步到文档 | `/sync-docs` | 每次 commit 后（被 `/commit` 包住） |
+| 提交代码 + 同步文档 | `/commit` | 每次提交 |
+| 拉代码 + 更新文档 | `/pull` | 每次拉取 |
+| 全量对账（找代码↔文档漂移） | `/update-memory` | 每周一次 / 大功能完成后 |
+
+---
+
+## v0.4：文档地图 + 漂移对账（最新）
+
+针对 dogfood 暴露的 3 个问题：
+
+1. **CLAUDE.md 加文档地图段** — Claude 不用 Read 概览/首页就知道 Obsidian 里有什么，省 ~3K token 探路成本
+2. **触发规则改为可判定清单** — 替换原来模糊的"了解架构时先读"，改成"必读场景 / 可跳过场景"具体列表
+3. **地图 vs 地形原则** — Obsidian 是地图（设计意图、决策），代码是地形（实际行为）。改代码前必须 Read 实际文件，不能凭 Obsidian 描述就改。
+4. **`/update-memory` 新命令** — 全量对账，找"代码改了 Obsidian 没改"的漂移，逐项让用户决策
+
+CLAUDE.md 排版按 cache 友好顺序：稳定段（文档地图、触发规则、真相源表）放上面，易变段（最近变更）放最底部。
 
 ---
 

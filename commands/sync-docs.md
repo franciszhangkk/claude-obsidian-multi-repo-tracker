@@ -88,15 +88,36 @@ git diff HEAD~1 --name-only
 - 在该区域顶部插入同样格式的提交记录，保留最近 5 条
 - 没有这个区域就**跳过**，不强行创建
 
-### 8. 输出报告
+### 8. 刷新 CLAUDE.md 的"Obsidian 文档地图"段
+
+**目的**：让 Claude 下次开工前不用 Read 概览/首页就能知道 Obsidian 里有哪些子文档。
+
+**执行**：
+
+1. 读 `$VAULT_PATH/<obsidian_project_path>/概览.md` 的 frontmatter `docs:` 字段
+   - 这是人工维护的真相源（含 `file:` 和 `desc:`）
+2. `find $VAULT_PATH/<obsidian_project_path>/ -name "*.md" -type f` 扫实际文件
+3. **合并策略**：
+   - frontmatter 里有的：用 frontmatter 的 `desc`
+   - 实际存在但 frontmatter 没列的：追加，desc 留 `_(待补充说明，可在 概览.md 的 docs: 字段添加)_`
+   - frontmatter 列了但文件不存在的：标 `⚠️ 文件不存在，请检查` 并保留（提示用户清理）
+4. 按目录分组生成新的"Obsidian 文档地图"段内容（格式见模板）
+5. **diff 现有 CLAUDE.md 的"## Obsidian 文档地图"段**：
+   - 内容相同 → **跳过写入**（保护 prefix cache，不无谓改动）
+   - 内容不同 → 用 Edit 替换该段
+6. 没有这段的旧版 CLAUDE.md → **跳过并报告**："CLAUDE.md 缺少 Obsidian 文档地图段，请用新模板迁移或运行 /update-memory"
+
+### 9. 输出报告
 
 ```
 ✅ 已同步 <obsidian_project_path>
   - activeContext.md ← +1 条提交
   - 首页.md ← 项目状态已刷新
-  - CLAUDE.md ← 同步 / 跳过（无该区域）
+  - CLAUDE.md ← 最近变更 +1 条 / 文档地图 [无变化 | 刷新 +N -M]
   ⚠️ 检测到架构变更：<file1>, <file2>
      建议手动检查 $VAULT_PATH/<obsidian_project_path>/01-架构/ 是否需要更新
+  ⚠️ frontmatter docs: 列了 X 个文件不存在：<list>
+     建议清理 概览.md 的 docs: 字段
 ```
 
 ## 注意事项
