@@ -88,7 +88,19 @@ git clone https://github.com/<your-account>/claude-obsidian-multi-repo-tracker.g
 
 ---
 
-## v0.4：文档地图 + 漂移对账（最新）
+## v0.5：CLAUDE.md 精简为路由表（最新）
+
+CLAUDE.md 重定位为"路由表 + 硬约束"，所有项目内容（架构、功能细节）全部下沉 Obsidian，按路由按需加载。
+
+- **7 段新骨架**：元信息 / 项目速描 / 文档地图 / 路由表 / 真相源 / Git 约定 / 硬约束
+- **路由表**：把"什么情况读什么文档"改成精确映射表，Claude 没有解释空间
+- **项目速描**：必须填"谁在用、解决什么业务问题"，不只是技术栈
+- **"最近变更"下沉 activeContext.md**：CLAUDE.md 不再有此段，全交 activeContext 承载
+- **token 目标**：ai-agents ≈ 2K（原 4K），简单项目 500-800
+
+---
+
+## v0.4：文档地图 + 漂移对账
 
 针对 dogfood 暴露的 3 个问题：
 
