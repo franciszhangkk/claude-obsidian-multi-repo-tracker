@@ -18,8 +18,8 @@ description: 把 Obsidian vault 变成跨多代码仓库的项目跟踪知识库
 
 | 命令 | 用途 |
 |------|------|
-| `/init-vault` | 初始化一个新的 vault（生成首页、CLAUDE.md、AGENTS.md 等） |
-| `/add-project` | 在 vault 里新增一个项目（生成模板目录） |
+| `/init-vault` | 初始化 vault 结构（通常由 `/add-project` 自动调用，无需单独运行）|
+| `/add-project` | 新增项目：检测语言、扫代码生成架构草稿、问业务定位、写 CLAUDE.md |
 | `/sync-docs` | 把最近代码变更同步到 Obsidian |
 | `/commit` | git commit + 自动同步文档 |
 | `/pull` | git pull + 自动同步文档 |

@@ -104,7 +104,7 @@ Prompts for your vault path, then generates the base structure (homepage, CLAUDE
 /add-project ai-agents ~/code/ai-agents
 ```
 
-Creates the three-file set (overview, activeContext, progress + five category dirs) in Obsidian, and writes a v0.5-structured CLAUDE.md in your code repo.
+Scans code structure → generates architecture draft → asks for business context → creates Obsidian three-file set (overview, activeContext, progress) → writes CLAUDE.md. The overview's "Architecture" and "Key Modules" sections are auto-filled from code analysis — no more blank placeholders.
 
 ### 4. Daily workflow
 
@@ -122,8 +122,8 @@ Creates the three-file set (overview, activeContext, progress + five category di
 
 | Command | When | What it does |
 |---------|------|-------------|
-| `/init-vault` | First time | Initialize Obsidian vault structure |
-| `/add-project` | New project | Generate templates + detect language + write CLAUDE.md |
+| `/init-vault` | Usually auto-called | Initialize vault structure (auto-runs when `/add-project` detects missing vault) |
+| `/add-project` | New project | Detect language + **scan code → generate architecture draft** + ask business context + write CLAUDE.md |
 | `/commit` | Every commit | Stage + Chinese message + sync-docs + **auto-infer focus draft** |
 | `/pull` | Every pull | Stash-protected pull + batch doc sync |
 | `/sync-docs` | After commits | Update activeContext recent changes + refresh doc map |

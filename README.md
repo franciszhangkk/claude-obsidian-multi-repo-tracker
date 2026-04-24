@@ -104,7 +104,7 @@ git clone https://github.com/franciszhangkk/claude-obsidian-multi-repo-tracker.g
 /add-project ai-agents ~/code/ai-agents
 ```
 
-在 `项目/ai-agents/` 下生成三件套（概览、activeContext、progress + 五个分类目录），并在代码仓库根写入 v0.5 结构的 CLAUDE.md。
+自动完成：扫描代码结构 → 生成架构草稿 → 问业务定位 → 创建 Obsidian 三件套（概览、activeContext、progress）→ 写入代码仓库 CLAUDE.md。概览的"架构速览"和"关键模块"已自动填充，不再是空白占位符。
 
 ### 4. 日常工作
 
@@ -122,8 +122,8 @@ git clone https://github.com/franciszhangkk/claude-obsidian-multi-repo-tracker.g
 
 | 命令 | 触发时机 | 说明 |
 |------|---------|------|
-| `/init-vault` | 首次使用 | 初始化 Obsidian vault 基础结构 |
-| `/add-project` | 新增项目 | 创建项目模板 + 自动检测语言 + 写入 CLAUDE.md |
+| `/init-vault` | 通常自动调用 | 初始化 vault 结构（`/add-project` 检测到 vault 不存在时自动 inline 运行）|
+| `/add-project` | 新增项目 | 检测语言 + **扫代码结构生成架构草稿** + 问业务定位 + 写 CLAUDE.md |
 | `/commit` | 每次提交 | 智能暂存 + 中文 message + sync-docs + **自动推断焦点草稿** |
 | `/pull` | 每次拉取 | stash 保护 + ff-only pull + 批量同步文档 |
 | `/sync-docs` | 提交后 / 主动同步 | 更新 activeContext 最近变更 + 刷新文档地图 |

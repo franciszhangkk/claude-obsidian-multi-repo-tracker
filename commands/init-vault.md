@@ -1,9 +1,12 @@
 ---
-description: 初始化一个 Obsidian vault 作为 Claude Code 的多项目跟踪知识库
+description: 初始化一个 Obsidian vault 作为 Claude Code 的多项目跟踪知识库。通常由 /add-project 自动调用，直接使用场景：重置 vault 结构、或在没有任何项目的情况下单独初始化。
 allowed-tools: [Bash, Read, Write, Edit, Glob, AskUserQuestion]
 ---
 
 # /init-vault — 初始化 Obsidian vault
+
+> **通常不需要单独调用**：`/add-project` 检测到 vault 不存在时会自动 inline 运行本命令。
+> 直接使用的场景：重置已有 vault 结构、或想先建 vault 再逐步添加项目。
 
 你的任务：把 `templates/vault/` 下的模板复制到用户指定的 vault 路径，建立"多项目跟踪知识库"的基础结构。
 
