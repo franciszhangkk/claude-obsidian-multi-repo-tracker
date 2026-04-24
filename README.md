@@ -2,43 +2,82 @@
 
 [中文](README.md) | [English](README-en.md)
 
-> 一个 Claude Code Skill，把你的 Obsidian vault 变成跨多个代码仓库的项目跟踪知识库。
-
-**核心理念**：让 Claude Code 在每次开工前先读 Obsidian，而不是从零扫代码。文档 = 上下文缓存。
+> 一个 Claude Code Skill：把 CLAUDE.md 变成精准的路由表，把 Obsidian 变成按需读取的项目知识库，让 Claude 每次只加载刚好够的上下文。
 
 ---
 
-## 为什么要这个
+## 解决什么问题
 
-当你同时维护多个代码仓库（前端、后端、proto 共享库、脚手架……），Claude Code 每次进入项目都要重新理解架构、找入口、记跨仓库依赖。**结果**：每个会话浪费几千 token 在重复探索上，而且回答不一致。
+同时维护多个代码仓库时，Claude Code 每次进入项目都要重新探索架构、找入口、记跨仓库依赖——**每个会话浪费几千 token，而且回答不一致**。
 
-这个 skill 解决的事：
+常见的解法是把所有项目知识塞进 CLAUDE.md，但这又引出新问题：**CLAUDE.md 会膨胀到 4K-10K token，每次会话全量加载，大部分内容和当前任务无关，白白占用注意力。**
 
-- ✅ **每个项目有一份"活文档"**（架构、当前焦点、进度），Claude 开工前读 5KB 就能上手
-- ✅ **跨仓库依赖一图看清**（vault 首页统一索引）
-- ✅ **改完代码自动同步文档**（`/sync-docs` `/commit` `/pull`）
-- ✅ **全局工作日志**自动记录每天做了什么
-- ✅ **借鉴 Cline Memory Bank**，但支持多项目 + 跨仓库
+这个 skill 的答案是两层分离：
+
+| 层 | 文件 | 加载方式 | Token 预算 |
+|----|------|---------|-----------|
+| 导航层 | `CLAUDE.md` | 每次会话自动加载 | ~2K（路由表 + 硬约束） |
+| 内容层 | Obsidian 子文档 | Claude 按路由表按需 Read | ~1-3K（只读当前任务需要的）|
 
 ---
 
-## 它和其他方案有什么不同
+## 核心设计
 
-| 项目 | 单项目 | 跨仓库 | 代码↔文档同步 | 中文模板 | Codex 兼容 |
-|------|:----:|:----:|:----:|:----:|:----:|
-| **本项目** | ✅ | ✅ | ✅ | ✅ | ⚠️ 部分 |
-| [Cline Memory Bank](https://docs.cline.bot/features/memory-bank) | ✅ | ❌ | ❌ | ❌ | ❌ |
-| [obsidian-second-brain](https://github.com/eugeniughelbur/obsidian-second-brain) | ✅ | ❌ | ❌ | ❌ | ❌ |
-| [claude-obsidian (Karpathy LLM Wiki)](https://github.com/AgriciDaniel/claude-obsidian) | N/A | ❌ | ❌ | ❌ | ❌ |
-| [claude-code-memory-setup](https://github.com/lucasrosati/claude-code-memory-setup) | ✅ | ❌ | ⚠️ | ❌ | ❌ |
+### CLAUDE.md = 路由表，不是知识库
+
+v0.5 的 CLAUDE.md 只有 7 段，每段都有明确用途：
+
+```
+1. 元信息          ← vault 路径、关联项目（静态索引）
+2. 项目速描        ← 业务定位：谁在用、解决什么问题（30 秒心智模型）
+3. 文档地图        ← Obsidian 子文档清单 + 一句话说明（/sync-docs 自动维护）
+4. 路由表          ← 用户意图 → 必读文档（精确映射，无解释空间）
+5. 真相源原则      ← Obsidian 是地图，代码是地形
+6. Git 操作约定    ← /commit /pull 优先
+7. 项目硬约束      ← 不每次提醒就会犯错的强制规则
+```
+
+**不在 CLAUDE.md 里的**：架构细节、API 说明、实现模式、开发命令——这些在 Obsidian，用路由表按需找。
+
+### Obsidian = 分层内容库
+
+```
+项目/<name>/
+├── 概览.md         ← 业务定位、技术栈、关键模块（首次接触读这里）
+├── activeContext.md ← 当前焦点 + 最近 5 次提交（/sync-docs 机器维护）
+├── progress.md      ← 已完成功能 + 决策记录
+├── 01-架构/         ← 架构设计、跨项目交互图
+├── 02-功能/         ← 功能模块文档
+├── 03-产品/         ← 产品需求
+├── 04-参考资料/     ← API 文档、调试命令
+└── 05-测试与调试/   ← Bug 记录、测试用例
+```
+
+### 地图 vs 地形原则
+
+- **Obsidian 是地图**：设计意图、历史决策、当前焦点——代码里推不出来的东西
+- **代码是地形**：函数签名、实际行为、调用链——Obsidian 可能过期，改代码前必须 Read 实际文件
+- **发现不一致时**：小偏差立刻修 Obsidian / 大偏差停下来问用户 / 不要假设哪边对
+
+---
+
+## 和其他方案有什么不同
+
+| 方案 | 单项目 | 跨仓库 | token 效率 | 代码↔文档同步 | 漂移对账 | 中文模板 |
+|------|:----:|:----:|:----:|:----:|:----:|:----:|
+| **本项目** | ✅ | ✅ | ✅ 路由按需读 | ✅ | ✅ | ✅ |
+| [Cline Memory Bank](https://docs.cline.bot/features/memory-bank) | ✅ | ❌ | ❌ 每次全读 6 文件 | ❌ | ❌ | ❌ |
+| [obsidian-mind](https://github.com/breferrari/obsidian-mind) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| [claude-code-memory-setup](https://github.com/lucasrosati/claude-code-memory-setup) | ✅ | ❌ | ❌ | ⚠️ | ❌ | ❌ |
 
 ---
 
 ## 它不是什么
 
-- ❌ **不是** second brain / Zettelkasten / PARA —— 它只管"开发项目跟踪"，不管你的人生笔记
-- ❌ **不是** RAG / 向量检索 —— 纯 markdown，靠 Claude 直接读
-- ❌ **不绑定语言**—— Go / Python / Rust / JS 都能用，模板里没有任何语言特定假设
+- ❌ **不是** second brain / Zettelkasten / PARA——只管开发项目跟踪，不管你的人生笔记
+- ❌ **不是** RAG / 向量检索——纯 markdown，靠 Claude 直接读
+- ❌ **不绑定语言**——Go / Python / Rust / JS 都能用，模板里没有语言特定假设
+- ❌ **不依赖 hooks**——设计上主动调用命令，不做 PreToolUse / Stop hook 自动化
 
 ---
 
@@ -47,85 +86,72 @@
 ### 1. 安装 skill
 
 ```bash
-git clone https://github.com/<your-account>/claude-obsidian-multi-repo-tracker.git ~/.claude/skills/claude-obsidian-multi-repo-tracker
+git clone https://github.com/franciszhangkk/claude-obsidian-multi-repo-tracker.git \
+  ~/.claude/skills/claude-obsidian-multi-repo-tracker
 ```
 
 ### 2. 初始化你的 Obsidian vault
-
-在 Claude Code 里：
 
 ```
 /init-vault
 ```
 
-它会问你 vault 路径，然后生成：
+会问你 vault 路径，生成基础结构（首页、CLAUDE.md、开发工作流指南）。
 
-```
-<你的 vault>/
-├── 首页.md                    # 跨项目入口
-├── 开发工作流指南.md
-├── CLAUDE.md                  # 给 Claude 的全局指令
-├── AGENTS.md                  # 给 Codex 的全局指令（可选）
-└── 项目/                      # 项目文档目录
-```
-
-### 3. 把你的代码项目加进来
+### 3. 添加你的项目
 
 ```
 /add-project ai-agents ~/code/ai-agents
 ```
 
-会在 `项目/ai-agents/` 下生成模板（概览、activeContext、progress、五个分类目录），并在代码仓库根写一份 `CLAUDE.md` 指向这份文档。
+在 `项目/ai-agents/` 下生成三件套（概览、activeContext、progress + 五个分类目录），并在代码仓库根写入 v0.5 结构的 CLAUDE.md。
 
-### 4. 日常使用
+### 4. 日常工作
 
-| 场景 | 命令 | 频率 |
-|------|------|------|
-| 改完代码同步到文档 | `/sync-docs` | 每次 commit 后（被 `/commit` 包住） |
-| 提交代码 + 同步文档 | `/commit` | 每次提交 |
-| 拉代码 + 更新文档 | `/pull` | 每次拉取 |
-| 全量对账（找代码↔文档漂移） | `/update-memory` | 每周一次 / 大功能完成后 |
-
----
-
-## v0.5：CLAUDE.md 精简为路由表（最新）
-
-CLAUDE.md 重定位为"路由表 + 硬约束"，所有项目内容（架构、功能细节）全部下沉 Obsidian，按路由按需加载。
-
-- **7 段新骨架**：元信息 / 项目速描 / 文档地图 / 路由表 / 真相源 / Git 约定 / 硬约束
-- **路由表**：把"什么情况读什么文档"改成精确映射表，Claude 没有解释空间
-- **项目速描**：必须填"谁在用、解决什么业务问题"，不只是技术栈
-- **"最近变更"下沉 activeContext.md**：CLAUDE.md 不再有此段，全交 activeContext 承载
-- **token 目标**：ai-agents ≈ 2K（原 4K），简单项目 500-800
+| 场景 | 命令 |
+|------|------|
+| 提交代码 + 同步文档 | `/commit` |
+| 拉代码 + 更新文档 | `/pull` |
+| 只同步文档（不提交）| `/sync-docs` |
+| 全量对账，找漂移 | `/update-memory` |
 
 ---
 
-## v0.4：文档地图 + 漂移对账
+## 完整命令
 
-针对 dogfood 暴露的 3 个问题：
-
-1. **CLAUDE.md 加文档地图段** — Claude 不用 Read 概览/首页就知道 Obsidian 里有什么，省 ~3K token 探路成本
-2. **触发规则改为可判定清单** — 替换原来模糊的"了解架构时先读"，改成"必读场景 / 可跳过场景"具体列表
-3. **地图 vs 地形原则** — Obsidian 是地图（设计意图、决策），代码是地形（实际行为）。改代码前必须 Read 实际文件，不能凭 Obsidian 描述就改。
-4. **`/update-memory` 新命令** — 全量对账，找"代码改了 Obsidian 没改"的漂移，逐项让用户决策
-
-CLAUDE.md 排版按 cache 友好顺序：稳定段（文档地图、触发规则、真相源表）放上面，易变段（最近变更）放最底部。
+| 命令 | 触发时机 | 说明 |
+|------|---------|------|
+| `/init-vault` | 首次使用 | 初始化 Obsidian vault 基础结构 |
+| `/add-project` | 新增项目 | 创建项目模板 + 自动检测语言 + 写入 CLAUDE.md |
+| `/commit` | 每次提交 | 智能暂存 + 中文 commit message + 自动调 sync-docs |
+| `/pull` | 每次拉取 | stash 保护 + ff-only pull + 批量同步文档 |
+| `/sync-docs` | 提交后 / 主动同步 | 更新 activeContext 最近变更 + 刷新文档地图 |
+| `/update-memory` | 每周 / 大功能后 | 全量对账 Code ↔ Obsidian，找漂移逐项决策 |
 
 ---
 
 ## Codex 用户
 
-可以使用 vault 结构 + `AGENTS.md`，但 commands / hooks 是 Claude Code 专属。详见 [docs/codex-compatibility.md](docs/codex-compatibility.md)。
+可以使用 vault 结构 + `AGENTS.md`，但 `/commit` `/pull` `/sync-docs` 等命令是 Claude Code 专属。详见 [docs/codex-compatibility.md](docs/codex-compatibility.md)。
 
 ---
 
 ## 完整文档
 
 - [INSTALL.md](INSTALL.md) — 详细安装与配置
-- [SKILL.md](SKILL.md) — Skill 触发机制和命令清单
-- [docs/对比.md](docs/对比.md) — 和其他方案的详细对比
+- [SKILL.md](SKILL.md) — Skill 触发机制
 - [docs/设计原则.md](docs/设计原则.md) — 为什么这么设计
-- [examples/demo-vault/](examples/demo-vault/) — 一个最小可用的示例 vault
+- [examples/demo-vault/](examples/demo-vault/) — 最小可用示例 vault
+
+---
+
+## 更新记录
+
+**v0.5**：CLAUDE.md 精简为路由表 + 7 段骨架，引入项目速描（业务定位），最近变更下沉 activeContext，token 降 ~60%
+
+**v0.4**：加文档地图段、触发规则清单、地图 vs 地形原则、`/update-memory` 命令
+
+**v0.3**：实现 `/sync-docs` `/commit` `/pull`，完整 demo-vault，Layer 1 Git 操作约定
 
 ---
 

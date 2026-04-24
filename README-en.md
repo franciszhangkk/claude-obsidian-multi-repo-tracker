@@ -2,115 +2,162 @@
 
 [中文](README.md) | [English](README-en.md)
 
-> A Claude Code Skill that turns your Obsidian vault into a project-tracking knowledge base across multiple code repositories.
-
-**Core idea**: Make Claude Code read Obsidian *before* it starts working — instead of re-scanning your codebase from scratch every session. Documentation = context cache.
+> A Claude Code Skill: CLAUDE.md as a lightweight router (~2K token), Obsidian as an on-demand content library — Claude loads just enough context for each task.
 
 ---
 
-## Why this exists
+## The Problem
 
-When you maintain multiple code repositories at once (frontend, backend, shared proto library, scaffolding, ...), Claude Code wastes thousands of tokens every session re-discovering the architecture, finding entry points, and re-learning cross-repo dependencies. Worse, the answers it gives are inconsistent.
+When you maintain multiple code repositories, Claude Code wastes thousands of tokens every session re-discovering architecture, finding entry points, and re-learning cross-repo dependencies.
 
-What this skill solves:
-
-- ✅ **Each project has a "live document"** (architecture, current focus, progress) — Claude reads ~5 KB and is ready to work
-- ✅ **Cross-repo dependencies in one place** (vault homepage as central index)
-- ✅ **Code → docs auto-sync** (`/sync-docs`, `/commit`, `/pull`)
-- ✅ **Global work log** automatically records what you did each day
-- ✅ **Inspired by Cline Memory Bank**, but supports multi-project + cross-repo
+The obvious fix — stuffing all project knowledge into CLAUDE.md — creates a new problem: **a 4K-10K token CLAUDE.md loads in full on every session, most of it irrelevant to the current task.**
 
 ---
 
-## How it differs from other approaches
+## The Design
 
-| Project | Single project | Cross-repo | Code↔docs sync | Chinese templates | Codex compatible |
-|---------|:--------------:|:----------:|:--------------:|:-----------------:|:----------------:|
-| **This project** | ✅ | ✅ | ✅ | ✅ | ⚠️ Partial |
-| [Cline Memory Bank](https://docs.cline.bot/features/memory-bank) | ✅ | ❌ | ❌ | ❌ | ❌ |
-| [obsidian-second-brain](https://github.com/eugeniughelbur/obsidian-second-brain) | ✅ | ❌ | ❌ | ❌ | ❌ |
-| [claude-obsidian (Karpathy LLM Wiki)](https://github.com/AgriciDaniel/claude-obsidian) | N/A | ❌ | ❌ | ❌ | ❌ |
-| [claude-code-memory-setup](https://github.com/lucasrosati/claude-code-memory-setup) | ✅ | ❌ | ⚠️ | ❌ | ❌ |
+Two-layer separation:
 
-> Note: "Chinese templates" means the bundled templates ship in Chinese by default. The skill itself is **language-agnostic** — Go, Python, Rust, JS, anything works. Templates can be translated.
+| Layer | File | Loading | Token budget |
+|-------|------|---------|-------------|
+| Navigation | `CLAUDE.md` | Auto-loaded every session | ~2K (router + hard constraints) |
+| Content | Obsidian sub-documents | Claude reads on-demand via route table | ~1-3K (only what the task needs) |
+
+### CLAUDE.md = Route Table, Not a Knowledge Base
+
+Seven sections with a clear purpose each:
+
+```
+1. Metadata         ← vault path, related projects
+2. Project pitch    ← who uses it, what business problem it solves
+3. Doc map          ← Obsidian sub-document index (/sync-docs auto-maintains)
+4. Route table      ← user intent → must-read document (precise mapping)
+5. Truth source     ← Obsidian is the map, code is the territory
+6. Git conventions  ← /commit /pull first
+7. Hard constraints ← rules Claude will break if not reminded every session
+```
+
+Architecture details, API docs, implementation patterns — all live in Obsidian, fetched via the route table.
+
+### Obsidian = Layered Content Library
+
+```
+project/<name>/
+├── 概览.md (Overview)      ← business context, tech stack, key modules
+├── activeContext.md         ← current focus + last 5 commits (machine-maintained)
+├── progress.md              ← completed features + decision log
+├── 01-架构/ (Architecture)  ← architecture docs, cross-repo diagrams
+├── 02-功能/ (Features)      ← feature module docs
+├── 03-产品/ (Product)       ← product requirements
+├── 04-参考资料/ (Reference) ← API docs, debug commands
+└── 05-测试与调试/ (Testing) ← bug records, test cases
+```
+
+### Map vs Territory Principle
+
+- **Obsidian is the map**: design intent, past decisions, current focus — things code can't tell you
+- **Code is the territory**: function signatures, actual behavior, call chains — Obsidian can drift, always Read actual files before changing code
+- **When they conflict**: fix small discrepancies in Obsidian immediately; for large ones, stop and ask the user
 
 ---
 
-## What this is *not*
+## How It Differs
 
-- ❌ **Not** a second brain / Zettelkasten / PARA system — it only tracks software projects, not your life notes
-- ❌ **Not** RAG / vector retrieval — pure markdown, Claude reads it directly
-- ❌ **Not language-locked** — Go / Python / Rust / JS all work; templates contain no language-specific assumptions
+| Approach | Multi-repo | Token efficiency | Code↔docs sync | Drift detection |
+|----------|:----------:|:---------------:|:--------------:|:---------------:|
+| **This project** | ✅ | ✅ route on demand | ✅ | ✅ `/update-memory` |
+| [Cline Memory Bank](https://docs.cline.bot/features/memory-bank) | ❌ | ❌ reads 6 files every session | ❌ | ❌ |
+| [obsidian-mind](https://github.com/breferrari/obsidian-mind) | ❌ | ❌ | ❌ | ❌ |
+| [claude-code-memory-setup](https://github.com/lucasrosati/claude-code-memory-setup) | ❌ | ❌ | ⚠️ | ❌ |
 
 ---
 
-## Quick start (5 minutes)
+## What This Is Not
 
-### 1. Install the skill
+- ❌ **Not** a second brain / Zettelkasten / PARA — project tracking only, not life notes
+- ❌ **Not** RAG / vector retrieval — pure markdown, Claude reads directly
+- ❌ **Not language-locked** — Go / Python / Rust / JS all work
+- ❌ **No hooks** — commands are invoked explicitly; no PreToolUse / Stop hook automation
+
+---
+
+## Quick Start (5 minutes)
+
+### 1. Install
 
 ```bash
 git clone https://github.com/franciszhangkk/claude-obsidian-multi-repo-tracker.git \
   ~/.claude/skills/claude-obsidian-multi-repo-tracker
 ```
 
-### 2. Initialize your Obsidian vault
-
-In Claude Code:
+### 2. Initialize your vault
 
 ```
 /init-vault
 ```
 
-It will ask for your vault path, then generate:
+Prompts for your vault path, then generates the base structure (homepage, CLAUDE.md, workflow guide).
 
-```
-<your vault>/
-├── 首页.md (Homepage)              # Cross-project index
-├── 开发工作流指南.md (Workflow Guide)
-├── CLAUDE.md                        # Global instructions for Claude
-├── AGENTS.md                        # Global instructions for Codex (optional)
-└── 项目/ (Projects)                 # Project documentation directory
-```
-
-### 3. Add your code projects
+### 3. Add a project
 
 ```
 /add-project ai-agents ~/code/ai-agents
 ```
 
-This generates a template under `项目/ai-agents/` (overview, activeContext, progress, plus five category folders), and writes a `CLAUDE.md` in your code repo pointing back to this documentation.
+Creates the three-file set (overview, activeContext, progress + five category dirs) in Obsidian, and writes a v0.5-structured CLAUDE.md in your code repo.
 
-### 4. Daily usage
+### 4. Daily workflow
 
 | Scenario | Command |
 |----------|---------|
-| Sync code changes to docs | `/sync-docs` |
 | Commit code + sync docs | `/commit` |
 | Pull code + update docs | `/pull` |
-| Update current focus | `/update-active` |
-| Weekly review (digest journal into progress) | `/weekly-digest` |
+| Sync docs only | `/sync-docs` |
+| Full drift audit | `/update-memory` |
 
 ---
 
-## Codex users
+## All Commands
 
-You can use the vault structure + `AGENTS.md`, but commands and hooks are Claude Code only. See [docs/codex-compatibility.md](docs/codex-compatibility.md).
+| Command | When | What it does |
+|---------|------|-------------|
+| `/init-vault` | First time | Initialize Obsidian vault structure |
+| `/add-project` | New project | Generate templates + detect language + write CLAUDE.md |
+| `/commit` | Every commit | Stage files + Chinese commit message + auto sync-docs |
+| `/pull` | Every pull | Stash-protected pull + batch doc sync |
+| `/sync-docs` | After commits | Update activeContext recent changes + refresh doc map |
+| `/update-memory` | Weekly / post-feature | Full audit: Code ↔ Obsidian drift, decide per item |
 
 ---
 
-## Full documentation
+## Codex Users
 
-- [INSTALL.md](INSTALL.md) — Detailed installation and configuration
-- [SKILL.md](SKILL.md) — Skill trigger conditions and command list
-- [docs/对比.md](docs/对比.md) — Detailed comparison with other approaches (Chinese)
-- [docs/设计原则.md](docs/设计原则.md) — Design principles, why it's built this way (Chinese)
-- [examples/demo-vault/](examples/demo-vault/) — A minimal example vault
+Vault structure + `AGENTS.md` work. Commands (`/commit`, `/pull`, `/sync-docs`) are Claude Code only. See [docs/codex-compatibility.md](docs/codex-compatibility.md).
+
+---
+
+## Docs
+
+- [INSTALL.md](INSTALL.md) — Installation and configuration
+- [SKILL.md](SKILL.md) — Skill trigger conditions
+- [docs/设计原则.md](docs/设计原则.md) — Design principles (Chinese)
+- [examples/demo-vault/](examples/demo-vault/) — Minimal example vault
+
+---
+
+## Changelog
+
+**v0.5**: CLAUDE.md refactored to route table + 7-section skeleton; project pitch section added; recent changes moved to activeContext; token reduced ~60%
+
+**v0.4**: Added doc map, route checklist, map-vs-territory principle, `/update-memory` command
+
+**v0.3**: Implemented `/sync-docs` `/commit` `/pull`, full demo-vault, Layer 1 Git conventions
 
 ---
 
 ## Contributing
 
-PRs and issues welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). The project is intentionally small in scope (project tracking only, not a second brain), so feature requests should align with that.
+PRs and issues welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Scope is intentionally narrow (project tracking only), so feature requests should align with that.
 
 ## Acknowledgments
 
