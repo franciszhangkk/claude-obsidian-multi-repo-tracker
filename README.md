@@ -110,9 +110,10 @@ git clone https://github.com/franciszhangkk/claude-obsidian-multi-repo-tracker.g
 
 | 场景 | 命令 |
 |------|------|
-| 提交代码 + 同步文档 | `/commit` |
+| 提交代码 + 同步文档 + 更新焦点 | `/commit` |
 | 拉代码 + 更新文档 | `/pull` |
 | 只同步文档（不提交）| `/sync-docs` |
+| 切换任务 / 更新当前焦点 | `/update-active` |
 | 全量对账，找漂移 | `/update-memory` |
 
 ---
@@ -123,9 +124,10 @@ git clone https://github.com/franciszhangkk/claude-obsidian-multi-repo-tracker.g
 |------|---------|------|
 | `/init-vault` | 首次使用 | 初始化 Obsidian vault 基础结构 |
 | `/add-project` | 新增项目 | 创建项目模板 + 自动检测语言 + 写入 CLAUDE.md |
-| `/commit` | 每次提交 | 智能暂存 + 中文 commit message + 自动调 sync-docs |
+| `/commit` | 每次提交 | 智能暂存 + 中文 message + sync-docs + **自动推断焦点草稿** |
 | `/pull` | 每次拉取 | stash 保护 + ff-only pull + 批量同步文档 |
 | `/sync-docs` | 提交后 / 主动同步 | 更新 activeContext 最近变更 + 刷新文档地图 |
+| `/update-active` | 切换任务时 | 从 git 信号推断焦点草稿，用户一键确认写入 activeContext |
 | `/update-memory` | 每周 / 大功能后 | 全量对账 Code ↔ Obsidian，找漂移逐项决策 |
 
 ---

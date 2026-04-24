@@ -110,9 +110,10 @@ Creates the three-file set (overview, activeContext, progress + five category di
 
 | Scenario | Command |
 |----------|---------|
-| Commit code + sync docs | `/commit` |
+| Commit code + sync docs + update focus | `/commit` |
 | Pull code + update docs | `/pull` |
 | Sync docs only | `/sync-docs` |
+| Switch task / update current focus | `/update-active` |
 | Full drift audit | `/update-memory` |
 
 ---
@@ -123,9 +124,10 @@ Creates the three-file set (overview, activeContext, progress + five category di
 |---------|------|-------------|
 | `/init-vault` | First time | Initialize Obsidian vault structure |
 | `/add-project` | New project | Generate templates + detect language + write CLAUDE.md |
-| `/commit` | Every commit | Stage files + Chinese commit message + auto sync-docs |
+| `/commit` | Every commit | Stage + Chinese message + sync-docs + **auto-infer focus draft** |
 | `/pull` | Every pull | Stash-protected pull + batch doc sync |
 | `/sync-docs` | After commits | Update activeContext recent changes + refresh doc map |
+| `/update-active` | When switching tasks | Infer focus from git signals, one-tap confirm → activeContext |
 | `/update-memory` | Weekly / post-feature | Full audit: Code ↔ Obsidian drift, decide per item |
 
 ---

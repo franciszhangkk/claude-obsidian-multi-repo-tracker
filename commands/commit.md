@@ -71,7 +71,29 @@ EOF
 
 如果 sync-docs 失败（vault 不存在、项目未注册等），不要让 commit 一起回滚 —— commit 已经在 git 里了。报告"提交成功，文档同步失败：<原因>"并提示用户后续手动 `/sync-docs`。
 
-### 6. 输出报告
+### 6. 更新当前焦点（精简版 update-active）
+
+**额外 token 成本约 200**，复用已有的 commit message，不再重新读 git。
+
+从 commit message 推断焦点草稿（和 `/update-active` 第 3 步相同规则，但输入只用 commit message）。
+
+然后用 AskUserQuestion 展示：
+
+```
+当前焦点是否需要更新？
+
+  推测："<从 commit message 提取的一句话>"
+
+→ 确认 / 自定义 / s 跳过
+```
+
+- 用户确认 → 写入 activeContext.md "当前焦点"段
+- 用户跳过 → 不动 activeContext，继续
+- 用户自定义 → 写入用户输入的内容
+
+**什么时候建议跳过**：commit type 是 `chore` / `docs` / `style` / `test` 时，推测草稿后主动提示"这次提交不涉及功能进展，建议跳过焦点更新"。
+
+### 7. 输出报告
 
 ```
 ✅ 提交完成

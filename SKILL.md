@@ -23,7 +23,7 @@ description: 把 Obsidian vault 变成跨多代码仓库的项目跟踪知识库
 | `/sync-docs` | 把最近代码变更同步到 Obsidian |
 | `/commit` | git commit + 自动同步文档 |
 | `/pull` | git pull + 自动同步文档 |
-| `/update-active` | 刷新当前项目的 activeContext.md |
+| `/update-active` | 从 git 信号推断焦点草稿，用户一键确认后写入 activeContext.md |
 | `/weekly-digest` | 周回顾，把日记编进项目 progress.md |
 
 详见 [commands/](commands/) 目录下每个命令的说明。
@@ -48,9 +48,10 @@ export OBSIDIAN_VAULT_PATH="$HOME/Desktop/Obsidian Vault"
 
 ## 工作机制
 
-1. **读**：Claude 在每次开工前读项目的 `概览.md` + `activeContext.md`，获取上下文
-2. **写**：通过 commands 把代码变更/讨论结论写回 vault
-3. **链**：跨仓库依赖通过 vault 首页统一索引，Claude 跟着 wikilink 跳转
+1. **导航**：CLAUDE.md (~2K token) 自动加载，内含路由表，告诉 Claude 什么情况读哪份文档
+2. **按需读**：Claude 根据路由表按需 Read Obsidian 子文档，不是每次都全读
+3. **写**：通过 commands 把代码变更/焦点更新写回 vault（/commit 顺带更新焦点）
+4. **链**：跨仓库依赖通过 vault 首页统一索引，Claude 跟着 wikilink 跳转
 
 ## 不做什么
 
